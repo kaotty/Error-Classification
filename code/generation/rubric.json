@@ -1,0 +1,178 @@
+{
+  "error_categories": [
+    {
+      "code": "FE",
+      "label": "Formula Error",
+      "definition": "The model chooses the wrong 'tool' for the job, such as confusing two different formulas or misapplying a theorem.",
+      "examples": [
+        {
+          "question": "An investment of $1000 is made in an account that pays 5% interest annually. What is the total amount in the account after 3 years, if the interest is compounded annually?",
+          "original_solution": "The formula for compound interest is A = P(1 + r)^n.\nP=1000, r=0.05, n=3.\nA = 1000 * (1 + 0.05)^3 = 1000 * (1.05)^3 = 1000 * 1.157625.\nA = 1157.625.\n#### 1157.625",
+          "original_answer": 1157.625,
+          "transformed_solution": "The formula for simple interest is A = P(1 + rn).\nP=1000, r=0.05, n=3.\nA = 1000 * (1 + 0.05 * 3) = 1000 * (1 + 0.15).\nA = 1000 * 1.15 = 1150.\n#### 1150",
+          "transformed_answer": 1150.0,
+          "wrong_step": 1,
+          "wrong_type": "FE",
+          "is_single_error": true,
+          "explanation": "The model incorrectly chose the 'tool' for the job. It used the simple interest formula (A = P(1+rn)) for a problem that explicitly required the compound interest formula (A = P(1+r)^n)."
+        },
+        {
+          "question": "A particle starts from rest and accelerates uniformly at 2 m/s^2. How far does it travel in 4 seconds?",
+          "original_solution": "Use the kinematic equation for distance: d = v0*t + 0.5*a*t^2.\nGiven: v0 = 0 (starts from rest), a = 2 m/s^2, t = 4 s.\nd = (0)*(4) + 0.5*(2)*(4)^2.\nd = 0 + 1 * 16 = 16 meters.\n#### 16",
+          "original_answer": 16.0,
+          "transformed_solution": "Use the kinematic equation for velocity: v = v0 + a*t.\nGiven: v0 = 0, a = 2, t = 4.\nv = 0 + (2)*(4) = 8 m/s.\nThis is the final velocity, not the distance.\n#### 8",
+          "transformed_answer": 8.0,
+          "wrong_step": 1,
+          "wrong_type": "FE",
+          "is_single_error": true,
+          "explanation": "The model misapplied the theorem. It correctly identified the variables but chose the wrong formula (for final velocity) instead of the required formula for distance."
+        }
+      ]
+    },
+    {
+      "code": "CE",
+      "label": "Conceptual Error",
+      "definition": "The model ignores, misreads, or misunderstands a key constraint, condition, or objective in the problem *before* starting to solve it.",
+      "examples": [
+        {
+          "question": "Find the hypotenuse of a right-angled triangle with legs of length 5 and 12.",
+          "original_solution": "Let a=5 and b=12 be the legs. Let c be the hypotenuse.\nUse the Pythagorean theorem: a^2 + b^2 = c^2.\n5^2 + 12^2 = c^2.\n25 + 144 = c^2.\n169 = c^2.\nc = 13.\n#### 13",
+          "original_answer": 13.0,
+          "transformed_solution": "Let a=5 and b=12 be the legs.\nArea = 0.5 * a * b\nArea = 0.5 * 5 * 12 = 30.\n#### 30",
+          "transformed_answer": 30.0,
+          "wrong_step": 2,
+          "wrong_type": "CE",
+          "is_single_error": true,
+          "explanation": "The model conceptually misunderstood the problem's objective. It was asked to find the 'hypotenuse' but instead calculated the 'area' of the triangle, ignoring the actual goal *before* starting the correct calculation."
+        },
+        {
+          "question": "A car travels 180 miles at a constant speed. If the car had traveled 15 mph faster, the journey would have taken 1 hour less. What was the car's original speed?",
+          "original_solution": "Let v be the original speed and t be the original time. d = 180.\nt = 180 / v.\nThe new speed is v + 15. The new time is t - 1.\nt - 1 = 180 / (v + 15)\nSubstitute t: (180 / v) - 1 = 180 / (v + 15)\n180(v + 15) - v(v + 15) = 180v\n180v + 2700 - v^2 - 15v = 180v\nv^2 + 15v - 2700 = 0\n(v + 60)(v - 45) = 0\nSince speed must be positive, v = 45 mph.\n#### 45",
+          "original_answer": 45.0,
+          "transformed_solution": "Let v be the original speed and t be the original time. d = 180.\nt = 180 / v.\nThe new speed is v - 15. The new time is t + 1.\nt + 1 = 180 / (v - 15)\nSubstitute t: (180 / v) + 1 = 180 / (v - 15)\n180(v - 15) + v(v - 15) = 180v\n180v - 2700 + v^2 - 15v = 180v\nv^2 - 15v - 2700 = 0\nUse quadratic formula: v = [15 +/- sqrt(225 - 4(1)(-2700))] / 2 = [15 +/- sqrt(11025)] / 2 = [15 +/- 105] / 2.\nSolutions are v = 60 or v = -45. Since speed must be positive, v = 60 mph.\n#### 60",
+          "transformed_answer": 60.0,
+          "wrong_step": 3,
+          "wrong_type": "CE",
+          "is_single_error": true,
+          "explanation": "The model made a conceptual error *before* starting the calculation. It misread two key conditions, '15 mph faster' as '15 mph slower' (v-15) and '1 hour less' as '1 hour more' (t+1), fundamentally misunderstanding the problem's setup."
+        }
+      ]
+    },
+    {
+      "code": "CA",
+      "label": "Calculation Error",
+      "definition": "The model fails at pure mathematical execution (e.g., arithmetic, algebraic simplification, or counting). Its logic, formula, and setup may be correct, but it fails during the 'computation' step.",
+      "examples": [
+        {
+          "question": "Simplify the expression: (2x + 3)(x - 5)",
+          "original_solution": "Use the FOIL method: First, Outer, Inner, Last.\nFirst: 2x * x = 2x^2\nOuter: 2x * -5 = -10x\nInner: 3 * x = 3x\nLast: 3 * -5 = -15\nCombine terms: 2x^2 - 10x + 3x - 15 = 2x^2 - 7x - 15.\n#### 2x^2 - 7x - 15",
+          "original_answer": "2x^2 - 7x - 15",
+          "transformed_solution": "Use the FOIL method: First, Outer, Inner, Last.\nFirst: 2x * x = 2x^2\nOuter: 2x * -5 = -10x\nInner: 3 * x = 3x\nLast: 3 * -5 = -15\nCombine terms: 2x^2 - 10x + 3x - 15 = 2x^2 - 13x - 15.\n#### 2x^2 - 13x - 15",
+          "transformed_answer": "2x^2 - 13x - 15",
+          "wrong_step": 6,
+          "wrong_type": "CA",
+          "is_single_error": true,
+          "explanation": "The model's logic and setup (FOIL method) are perfectly correct. It correctly identified all four terms. However, it failed at the final 'computation' step, making an arithmetic error when combining -10x + 3x, getting -13x instead of the correct -7x."
+        },
+        {
+          "question": "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?",
+          "original_solution": "Natalia sold 48/2 = 24 clips in May.\nNatalia sold 48+24 = 72 clips altogether in April and May.\n#### 72",
+          "original_answer": 72,
+          "transformed_solution": "Natalia sold 48/2 = 12 clips in May.\nNatalia sold 48+12 =60  clips altogether in April and May. \n#### 60",
+          "transformed_answer": 60,
+          "wrong_step": 1,
+          "wrong_type": "CA",
+          "is_single_error": true,
+          "explanation": "Here, the 48/2 in step 1 is wrongly calculated as 12. It should be noted that step 2 needs to use the result of step 1, so the original 48+24 will be changed to 48+12. So, it should be noted that if a step is miscalculated, subsequent steps will inherit its error and use the number of miscalculations to further calculate. Futhermore, step 2 needs to be calculated correctly, and you should only consider one step error."
+        }
+      ]
+    },
+    {
+      "code": "MC",
+      "label": "Missing Case",
+      "definition": "The model fails to identify, consider, or analyze all necessary cases or branches required by the problem's logic. This error is structural, where the model ignores an entire subset of the potential solution space.",
+      "examples": [
+        {
+          "question": "How many integers between 1 and 100 (inclusive) are divisible by 3 or 5?",
+          "original_solution": "We use the Principle of Inclusion-Exclusion.\nCase 1 (Divisible by 3): N(A) = floor(100 / 3) = 33.\nCase 2 (Divisible by 5): N(B) = floor(100 / 5) = 20.\nCase 3 (Divisible by both 3 and 5, i.e., 15): N(A and B) = floor(100 / 15) = 6.\nTotal = N(A) + N(B) - N(A and B) = 33 + 20 - 6 = 47.\n#### 47",
+          "original_answer": 47,
+          "transformed_solution": "We find the numbers divisible by 3 and the numbers divisible by 5.\nCase 1 (Divisible by 3): N(A) = floor(100 / 3) = 33.\nCase 2 (Divisible by 5): N(B) = floor(100 / 5) = 20.\nTotal = N(A) + N(B) = 33 + 20 = 53.\n#### 53",
+          "transformed_answer": 53,
+          "wrong_step": 4,
+          "wrong_type": "MC",
+          "is_single_error": true,
+          "explanation": "The model failed to identify and analyze all necessary cases required by the problem's logic (Principle of Inclusion-Exclusion). It correctly analyzed Case 1 (divisible by 3) and Case 2 (divisible by 5), but it structurally ignored the entire third case: the subset of numbers divisible by both (15), which must be subtracted."
+        },
+        {
+          "question": "Find the sum of all positive integers x up to 20 (inclusive) such that x^2 - 4 is a multiple of 5.",
+          "original_solution": "We need to find all positive integers x from 1 to 20 where x^2 - 4 is a multiple of 5.\nThis condition is met when x^2 ends in 4 or 9.\nWe can test the values:\nx=2, x^2=4. x^2 - 4 = 0. (Multiple of 5)\nx=3, x^2=9. x^2 - 4 = 5. (Multiple of 5)\nx=7, x^2=49. x^2 - 4 = 45. (Multiple of 5)\nx=8, x^2=64. x^2 - 4 = 60. (Multiple of 5)\nx=12, x^2=144. x^2 - 4 = 140. (Multiple of 5)\nx=13, x^2=169. x^2 - 4 = 165. (Multiple of 5)\nx=17, x^2=289. x^2 - 4 = 285. (Multiple of 5)\nx=18, x^2=324. x^2 - 4 = 320. (Multiple of 5)\nThe numbers are: 2, 3, 7, 8, 12, 13, 17, 18.\nSum = 2 + 3 + 7 + 8 + 12 + 13 + 17 + 18 = 80.\n#### 80",
+          "original_answer": 80.0,
+          "transformed_solution": "We need to find all positive integers x from 1 to 20 where x^2 - 4 is a multiple of 5.\nThis condition is met when x^2 ends in 4.\nWe can test the values:\nx=2, x^2=4. x^2 - 4 = 0. (Multiple of 5)\nx=8, x^2=64. x^2 - 4 = 60. (Multiple of 5)\nx=12, x^2=144. x^2 - 4 = 140. (Multiple of 5)\nx=18, x^2=324. x^2 - 4 = 320. (Multiple of 5)\nThe numbers are: 2, 8, 12, 18.\nSum = 2 + 8 + 12 + 18 = 40.\n#### 40",
+          "transformed_answer": 40.0,
+          "wrong_step": 2,
+          "wrong_type": "MC",
+          "is_single_error": true,
+          "explanation": "The model failed to identify all necessary cases. It correctly analyzed the case where x^2 ends in 4, but it structurally ignored the entire second case (where x^2 ends in 9, e.g., x=3, 7, 13, 17), thus missing half of the valid numbers for the sum."
+        }
+      ]
+    },
+    {
+      "code": "HA",
+      "label": "Hallucination Error",
+      "definition": "The model introduces 'facts', numbers, or conditions that do not exist in the problem, or invents a non-existent theorem to support its argument.",
+      "examples": [
+        {
+          "question": "A farm has only chickens (2 legs) and pigs (4 legs). If the farm has a total of 30 animals and a total of 100 legs, how many chickens are there?",
+          "original_solution": "Let c be the number of chickens and p be the number of pigs.\nEq 1 (animals): c + p = 30\nEq 2 (legs): 2c + 4p = 100\nFrom Eq 1, c = 30 - p.\nSubstitute into Eq 2: 2(30 - p) + 4p = 100\n60 - 2p + 4p = 100\n2p = 40\np = 20\nSubstitute p=20 back into c = 30 - p: c = 30 - 20 = 10.\nThere are 10 chickens.\n#### 10",
+          "original_answer": 10.0,
+          "transformed_solution": "Let c be the number of chickens and p be the number of pigs.\nEq 1 (animals): c + p = 30\nEq 2 (legs): 2c + 4p = 100\nAs stated in the problem, the number of pigs is 15.\np = 15.\nSubstitute into Eq 1: c + 15 = 30, so c = 15.\nCheck with Eq 2: 2(15) + 4(15) = 30 + 60 = 90. (This doesn't match 100, but the model proceeds)\nThere are 15 chickens.\n#### 15",
+          "transformed_answer": 15.0,
+          "wrong_step": 3,
+          "wrong_type": "HA",
+          "is_single_error": true,
+          "explanation": "The model introduced a 'fact' in Step 3 ('As stated in the problem, the number of pigs is 15') that does not exist in the problem. This hallucinated number derails the entire correct logical setup."
+        },
+        {
+          "question": "A train leaves Chicago at 3:00 PM traveling east at 60 mph. A second train leaves the same station at 4:00 PM, also traveling east, at 75 mph. When will the second train overtake the first?",
+          "original_solution": "Let t be the time in hours after 3:00 PM.\nTrain 1's position: d1 = 60 * t\nTrain 2 leaves 1 hour later, so its travel time is t-1. Its position: d2 = 75 * (t - 1) for t >= 1.\nOvertake means d1 = d2.\n60t = 75(t - 1)\n60t = 75t - 75\n15t = 75\nt = 5 hours.\nThis is 5 hours after 3:00 PM, which is 8:00 PM.\n#### 8:00 PM",
+          "original_answer": "8:00 PM",
+          "transformed_solution": "Let t be the time in hours after 3:00 PM.\nTrain 1's position: d1 = 60 * t\nTrain 2 leaves 1 hour later, so its travel time is t-1. Its position: d2 = 75 * (t - 1).\nThe problem states there is a 30-mile head start for the first train.\nOvertake means d1 = d2.\n60t + 30 = 75(t - 1)\n60t + 30 = 75t - 75\n15t = 105\nt = 7 hours.\nThis is 7 hours after 3:00 PM, which is 10:00 PM.\n#### 10:00 PM",
+          "transformed_answer": "10:00 PM",
+          "wrong_step": 4,
+          "wrong_type": "HA",
+          "is_single_error": true,
+          "explanation": "The model introduced (hallucinated) a condition in Step 4 ('The problem states there is a 30-mile head start') which does not exist in the original problem, fundamentally altering the setup."
+        }
+      ]
+    },
+    {
+      "code": "VE",
+      "label": "Verification Error",
+      "definition": "The model's reasoning and calculation may be correct, but it fails to check the final solution against the problem's original physical or contextual constraints (e.g., failing to reject a negative length).",
+      "examples": [
+        {
+          "question": "A boat travels 24 miles upstream (against the current) and 24 miles downstream (with the current) in a total of 5 hours. The speed of the current is 2 mph. What is the speed of the boat in still water?",
+          "original_solution": "Let v be the boat's speed in still water. Current speed c = 2.\nSpeed upstream = v - c = v - 2\nSpeed downstream = v + c = v + 2\nTime = Distance / Speed. Total time T = T_up + T_down = 5.\n24 / (v - 2) + 24 / (v + 2) = 5\n24(v + 2) + 24(v - 2) = 5(v - 2)(v + 2)\n24v + 48 + 24v - 48 = 5(v^2 - 4)\n48v = 5v^2 - 20\n5v^2 - 48v - 20 = 0\nUsing quadratic formula: v = [ -(-48) +/- sqrt((-48)^2 - 4(5)(-20)) ] / (2 * 5)\nv = [ 48 +/- sqrt(2304 + 400) ] / 10 = [ 48 +/- sqrt(2704) ] / 10\nv = [ 48 +/- 52 ] / 10\nTwo solutions: v = (48 + 52) / 10 = 100 / 10 = 10 mph.\nOr v = (48 - 52) / 10 = -4 / 10 = -0.4 mph.\nSpeed must be positive, so we reject -0.4. The speed is 10 mph.\n#### 10",
+          "original_answer": 10.0,
+          "transformed_solution": "Let v be the boat's speed in still water. Current speed c = 2.\nSpeed upstream = v - c = v - 2\nSpeed downstream = v + c = v + 2\nTime = Distance / Speed. Total time T = T_up + T_down = 5.\n24 / (v - 2) + 24 / (v + 2) = 5\n24(v + 2) + 24(v - 2) = 5(v - 2)(v + 2)\n24v + 48 + 24v - 48 = 5(v^2 - 4)\n48v = 5v^2 - 20\n5v^2 - 48v - 20 = 0\nUsing quadratic formula: v = [ -(-48) +/- sqrt((-48)^2 - 4(5)(-20)) ] / (2 * 5)\nv = [ 48 +/- sqrt(2304 + 400) ] / 10 = [ 48 +/- sqrt(2704) ] / 10\nv = [ 48 +/- 52 ] / 10\nTwo solutions: v = (48 + 52) / 10 = 10 mph.\nOr v = (48 - 52) / 10 = -4 / 10 = -0.4 mph.\nThe solutions are 10 mph and -0.4 mph.\n#### 10, -0.4",
+          "transformed_answer": "10, -0.4",
+          "wrong_step": 15,
+          "wrong_type": "VE",
+          "is_single_error": true,
+          "explanation": "The model's reasoning and calculations are all correct up to finding the two mathematical solutions (10 and -0.4). However, it failed the final 'Verification' step: checking the solutions against the physical constraints of the problem (boat speed cannot be negative) and rejecting the impossible answer."
+        },
+        {
+          "question": "Solve the logarithmic equation: log2(x) + log2(x - 2) = 3",
+          "original_solution": "Combine the logs: log2(x * (x - 2)) = 3.\nConvert to exponential form: x(x - 2) = 2^3.\nx^2 - 2x = 8.\nx^2 - 2x - 8 = 0.\nFactor: (x - 4)(x + 2) = 0.\nPossible solutions: x = 4 or x = -2.\nVerification: We must check solutions in the original equation.\nCheck x = 4: log2(4) + log2(4 - 2) = 2 + 1 = 3. (Valid)\nCheck x = -2: log2(-2) is undefined. (Invalid)\nTherefore, the only solution is x = 4.\n#### 4",
+          "original_answer": 4.0,
+          "transformed_solution": "Combine the logs: log2(x * (x - 2)) = 3.\nConvert to exponential form: x(x - 2) = 2^3.\nx^2 - 2x = 8.\nx^2 - 2x - 8 = 0.\nFactor: (x - 4)(x + 2) = 0.\nPossible solutions: x = 4 or x = -2.\nTherefore, the solutions are x = 4 and x = -2.\n#### 4, -2",
+          "transformed_answer": "4, -2",
+          "wrong_step": 7,
+          "wrong_type": "VE",
+          "is_single_error": true,
+          "explanation": "The model's reasoning and calculation to find the two potential solutions (4 and -2) are correct. However, it failed the critical final 'Verification' step. It did not check the solutions against the original equation's contextual constraints (the domain of a logarithm), which would have shown that x = -2 is an extraneous, invalid solution."
+        }
+      ]
+    }
+  ]
+}
