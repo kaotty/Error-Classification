@@ -643,7 +643,7 @@ Output in json format enclosed by <output> and </output> tags.
 <output>
 {{
     "Correctness": bool (True if the current reasoning step is correct, False if the current reasoning step is incorrect),
-    "Error_Type": str (The type of error the current reasoning step contains, one of the following: FE, MC, CA, CS, UC, MB, HA, GA),
+    "Error_Type": str (The type of error the current reasoning step contains, one of the following: (FE, OM, CM, CA, CS, UC, MB, HA, GA)),
     "Incorrect_Reason": str (Detailed explanation of why the step is incorrect and what specific errors were made. Empty string if correct),
     "Method_Consistency": bool (True if the current step's approach/method aligns with the reference solution, False if using a different method),
     "Step_Relation": [
@@ -663,7 +663,7 @@ Output in json format enclosed by <output> and </output> tags.
 1. First, read through ALL previous steps to understand the solution context
 2. Compare the current step's methodology with the reference solution to assess consistency
 3. Validate the mathematical correctness of the current step
-4. If errors are found, classify them using the error type codes (FE, MC, CA, CS, UC, MB, HA, GA)
+4. If errors are found, classify them using the error type codes (FE, OM, CM, CA, CS, UC, MB, HA, GA)
 5. Identify what specific information the current step uses from previous steps
 6. Be precise about dependencies - only mark actual information flow, not mere sequential ordering
 7. Consider that a step may have multiple parent steps with different relationship types
