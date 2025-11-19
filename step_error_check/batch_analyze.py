@@ -1,6 +1,17 @@
 """
 批量分析脚本 - 对所有answer应用三步分析（segment, merge, check）
 """
+
+"""
+需要配置如下路径参数：
+JSONL_FILE: 输入文件路径 （格式与Error-Classification/test/claude/aime2025_claude_3_7_30_10_wrong_answers_refined.jsonl相同）
+SOLUTIONS_FILE: 参考解答文件路径 
+GROUND_TRUTH_FILE: 标准答案文件路径
+BASE_OUTPUT_DIR: 输出目录路径
+
+api_key = os.getenv("OPENROUTER_API_KEY") 需要在这里填openrouter的api key
+"""
+
 import json
 import os
 from openai import OpenAI
@@ -16,10 +27,10 @@ except ImportError:
     pass  # python-dotenv 未安装，跳过
 
 # 配置
-JSONL_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/deepseek_r1/aime2025_dpsk_30_10_wrong_answers_refined.jsonl"
+JSONL_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/claude/aime2025_claude_3_7_30_10_wrong_answers_refined.jsonl"
 SOLUTIONS_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/solutions.jsonl"
 GROUND_TRUTH_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/aime2025.jsonl"
-BASE_OUTPUT_DIR = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/step_error_check/deepseek_r1_aime2025_v4"
+BASE_OUTPUT_DIR = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/step_error_check/claude_aime2025_v1"
 
 # 并行处理配置
 MAX_WORKERS = 20  # 同时处理的答案数量（可根据API限流调整）
@@ -199,7 +210,7 @@ def should_process_record(record, ground_truth_answers):
         return True
 
     # 如果 extracted_answer 为 0，跳过
-    if extracted_answer == '0' or extracted_answer == '':
+    if extracted_answer == '0' or extracted_answer == '' or extracted_answer == 0:
         return False
 
     # 获取标准答案
@@ -225,7 +236,7 @@ def step1_segment(record, output_file):
 
     problem_id = record['problem_id']
     answer_id = record['answer_id']
-    reasoning = record['reasoning']
+    reasoning = record['reasoning'] + '\n\n' + record['answer']
     problem = record['problem_text']
 
     # 分割推理轨迹
@@ -501,6 +512,21 @@ def step3_check(merge_data, output_file, reference_solution=""):
     # 有参考解答，进行实际检查
     print("Checking with reference solution...")
 
+    """
+
+| Code | Label | Definition | Examples |
+|------|-------|------------|----------|
+| **FE** | Formula Error | Using wrong formula for context, applying theorem without meeting prerequisites, misapplying valid technique to invalid domain | Using L'Hôpital without indeterminate form |
+| **MC** | Misunderstanding Conditions/Constraints | Ignoring, misreading, or misunderstanding key constraints/conditions/objectives  | Misunderstanding 'sum of a, b, c' as 'product of a, b, c'|
+| **CA** | Calculation Error | Failing at pure mathematical execution (arithmetic, algebraic simplification, counting) despite correct logic/formula | 2+3=6, simplifying x²/x as x² |
+| **CS** | Contradictory Step | Inconsistent reasoning between preceding and subsequent steps | Stating x>0 then using x=-2 |
+| **UC** | Unsupported Conclusion | Jumping to incorrect conclusion by skipping critical intermediate reasoning | "f(x) = x³ - 3x has a maximum at x = 1\" (Wrong! it's actually a minimum) |
+| **MB** | Missing Branch | Failing to consider all necessary branches/cases, leading to incomplete solution | Only considering positive roots when both exist |
+| **HA** | Hallucination Error | Introducing non-existent facts, numbers, conditions, or theorems | Claiming "by Fermat's Last Theorem" for unrelated problem |
+| **GA** | Guess Answer Error | Guessing the answer without valid mathematical reasoning | Guessing the answer as 128+693=821 |
+
+    """
+
     prompt_template = r"""You are an expert mathematical reasoning validator tasked with analyzing the correctness and dependencies of reasoning steps in a mathematical solution.
 
 ## **Context**
@@ -548,7 +574,8 @@ When an error is detected, classify it using one or more of these categories:
 | Code | Label | Definition | Examples |
 |------|-------|------------|----------|
 | **FE** | Formula Error | Using wrong formula for context, applying theorem without meeting prerequisites, misapplying valid technique to invalid domain | Using L'Hôpital without indeterminate form |
-| **MC** | Misunderstanding Conditions/Constraints | Ignoring, misreading, or misunderstanding key constraints/conditions/objectives  | Misunderstanding 'sum of a, b, c' as 'product of a, b, c'|
+| **OM** | Objective Misidentification | The model correctly understands all the problem's components and constraints but solves for the wrong final quantity. The error is in identifying the *goal* of the problem.  | problem: "If 5x - 10 = 15, what is the value of 2x?", reasoning trace: "First, solve for x.\n5x = 15 + 10.\n5x = 25.\nx = 5.\nThe value is 5.\n" (Wrong! The model correctly solved for x but failed to complete the problem's objective, which was to find the value of 2x. It incorrectly identified 'x' as the final answer.)|
+| **CM** | Condition Misinterpretation | The model *reads* a key constraint but misunderstands its meaning, using an incorrect value or operator in its place. | problem: "A box must contain at least 10 apples. A truck holds 50 boxes. What is the minimum total number of apples the truck can hold?", Reasoning step: "At least 10' means *more than* 10, so the minimum is 11.\nMinimum total = (minimum per box) * (number of boxes).\nMinimum total = 11 * 50.\nMinimum total = 550" (Wrong! The model misinterpreted the constraint 'at least 10' (which means >= 10) as 'more than 10' (which means > 10, or an integer minimum of 11)) |
 | **CA** | Calculation Error | Failing at pure mathematical execution (arithmetic, algebraic simplification, counting) despite correct logic/formula | 2+3=6, simplifying x²/x as x² |
 | **CS** | Contradictory Step | Inconsistent reasoning between preceding and subsequent steps | Stating x>0 then using x=-2 |
 | **UC** | Unsupported Conclusion | Jumping to incorrect conclusion by skipping critical intermediate reasoning | "f(x) = x³ - 3x has a maximum at x = 1\" (Wrong! it's actually a minimum) |
