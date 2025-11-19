@@ -637,7 +637,7 @@ Here is the current reasoning step
 {current_reasoning_step}
 </current_reasoning_step>
 
-### **Output Format**
+## **Output Format**
 Output in json format enclosed by <output> and </output> tags.
 ```
 <output>
