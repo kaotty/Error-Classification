@@ -27,13 +27,13 @@ except ImportError:
     pass  # python-dotenv 未安装，跳过
 
 # 配置
-JSONL_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/claude/aime2025_claude_3_7_30_10_wrong_answers_refined.jsonl"
+JSONL_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/gpt_5_mini/aime2025_gpt5-mini.jsonl"
 SOLUTIONS_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/solutions.jsonl"
 GROUND_TRUTH_FILE = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/test/aime2025.jsonl"
-BASE_OUTPUT_DIR = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/step_error_check/claude_aime2025_v1"
+BASE_OUTPUT_DIR = "/Users/cusgadmin/Desktop/Project/LLM/repos/Error-Classification/step_error_check/gpt5-mini"
 
 # 并行处理配置
-MAX_WORKERS = 20  # 同时处理的答案数量（可根据API限流调整）
+MAX_WORKERS = 10  # 同时处理的答案数量（可根据API限流调整）
 
 # 创建输出目录
 SEGMENT_DIR = os.path.join(BASE_OUTPUT_DIR, "segment")
@@ -360,7 +360,7 @@ Output in json format enclosed by <output> and </output> tags.
     output_data = {
         "problem_id": problem_id,
         "answer_id": answer_id,
-        "model_id": record.get("model_id", ""),
+        "model_id": record.get("model", ""),
         "problem": problem,
         "total_steps": len(parse_result),
         "processed_steps": len(labeled_result),
@@ -512,20 +512,6 @@ def step3_check(merge_data, output_file, reference_solution=""):
     # 有参考解答，进行实际检查
     print("Checking with reference solution...")
 
-    """
-
-| Code | Label | Definition | Examples |
-|------|-------|------------|----------|
-| **FE** | Formula Error | Using wrong formula for context, applying theorem without meeting prerequisites, misapplying valid technique to invalid domain | Using L'Hôpital without indeterminate form |
-| **MC** | Misunderstanding Conditions/Constraints | Ignoring, misreading, or misunderstanding key constraints/conditions/objectives  | Misunderstanding 'sum of a, b, c' as 'product of a, b, c'|
-| **CA** | Calculation Error | Failing at pure mathematical execution (arithmetic, algebraic simplification, counting) despite correct logic/formula | 2+3=6, simplifying x²/x as x² |
-| **CS** | Contradictory Step | Inconsistent reasoning between preceding and subsequent steps | Stating x>0 then using x=-2 |
-| **UC** | Unsupported Conclusion | Jumping to incorrect conclusion by skipping critical intermediate reasoning | "f(x) = x³ - 3x has a maximum at x = 1\" (Wrong! it's actually a minimum) |
-| **MB** | Missing Branch | Failing to consider all necessary branches/cases, leading to incomplete solution | Only considering positive roots when both exist |
-| **HA** | Hallucination Error | Introducing non-existent facts, numbers, conditions, or theorems | Claiming "by Fermat's Last Theorem" for unrelated problem |
-| **GA** | Guess Answer Error | Guessing the answer without valid mathematical reasoning | Guessing the answer as 128+693=821 |
-
-    """
 
     prompt_template = r"""You are an expert mathematical reasoning validator tasked with analyzing the correctness and dependencies of reasoning steps in a mathematical solution.
 
@@ -571,17 +557,16 @@ Tip: If current step has conclusions conflict with the reference solution, then 
 ### 3. Error Type Classification (if applicable)
 When an error is detected, classify it using one or more of these categories:
 
-| Code | Label | Definition | Examples |
-|------|-------|------------|----------|
-| **FE** | Formula Error | Using wrong formula for context, applying theorem without meeting prerequisites, misapplying valid technique to invalid domain | Using L'Hôpital without indeterminate form |
-| **OM** | Objective Misidentification | The model correctly understands all the problem's components and constraints but solves for the wrong final quantity. The error is in identifying the *goal* of the problem.  | problem: "If 5x - 10 = 15, what is the value of 2x?", reasoning trace: "First, solve for x.\n5x = 15 + 10.\n5x = 25.\nx = 5.\nThe value is 5.\n" (Wrong! The model correctly solved for x but failed to complete the problem's objective, which was to find the value of 2x. It incorrectly identified 'x' as the final answer.)|
-| **CM** | Condition Misinterpretation | The model *reads* a key constraint but misunderstands its meaning, using an incorrect value or operator in its place. | problem: "A box must contain at least 10 apples. A truck holds 50 boxes. What is the minimum total number of apples the truck can hold?", Reasoning step: "At least 10' means *more than* 10, so the minimum is 11.\nMinimum total = (minimum per box) * (number of boxes).\nMinimum total = 11 * 50.\nMinimum total = 550" (Wrong! The model misinterpreted the constraint 'at least 10' (which means >= 10) as 'more than 10' (which means > 10, or an integer minimum of 11)) |
-| **CA** | Calculation Error | Failing at pure mathematical execution (arithmetic, algebraic simplification, counting) despite correct logic/formula | 2+3=6, simplifying x²/x as x² |
-| **CS** | Contradictory Step | Inconsistent reasoning between preceding and subsequent steps | Stating x>0 then using x=-2 |
-| **UC** | Unsupported Conclusion | Jumping to incorrect conclusion by skipping critical intermediate reasoning | "f(x) = x³ - 3x has a maximum at x = 1\" (Wrong! it's actually a minimum) |
-| **MB** | Missing Branch | Failing to consider all necessary branches/cases, leading to incomplete solution | Only considering positive roots when both exist |
-| **HA** | Hallucination Error | Introducing non-existent facts, numbers, conditions, or theorems | Claiming "by Fermat's Last Theorem" for unrelated problem |
-| **GA** | Guess Answer Error | Guessing the answer without valid mathematical reasoning | Guessing the answer as 128+693=821 |
+| Code | Definition |
+|------|------------|
+| **A-1** | The model introduces objectively false premises (hallucinations) that are not derived from the problem statement, or exhibits self-contradictory reasoning where a statement directly conflicts with a previous assertion within the same response. This represents a failure in the "Truthfulness" and "Consistency" of the reasoning chain.
+| **A-2** | Errors occurring during the mechanical execution of algebraic steps or the translation between mathematical forms. This includes applying formulas incorrectly, manipulation slips (e.g., sign errors in inequalities, solving equations), or mapping failures between representations (e.g., Complex plane to Cartesian coordinates), assuming the underlying logic was otherwise correct.
+| **G-1** | This category encompasses all errors regarding the structural construction and decomposition of the geometric figure. Its hallmark is a failure in "part-whole" logic, where the model establishes incorrect additive or subtractive relationships for angles, areas, or lengths (e.g., asserting Total Angle = Part A + Wrong Part). It also includes topological errors, such as misidentifying internal points as boundary points, confusing the order of points on a line, or creating impossible intersections. Essentially, this error implies that the model's mental "puzzle" of the figure is structurally broken, has missing pieces, or is assembled incorrectly.
+| **G-2** | This category targets unjustified assertions of properties or relationships between geometric elements, assuming the spatial structure is otherwise perceived correctly. The model identifies the correct components but hallucinates strict geometric rules without proof, such as claiming congruence, similarity, parallelism, or perpendicularity where none exist. It also includes "specialization errors," where general figures are treated as specific ones (e.g., assuming an arbitrary triangle is isosceles). Essentially, the model imposes non-existent constraints, theorems, or attributes onto a valid geometric map.
+| **G-3** | The model fails when translating geometric properties into mathematical frameworks (algebraic, coordinate, or trigonometric) or commits errors during the quantitative calculation of metrics (angles, lengths, areas). This includes incorrectly establishing coordinate systems, misapplying trigonometric formulas (e.g., Law of Cosines), or calculation slips within the analytic process.
+| **C-1** | The model adopts a correct strategy but fails to list all possible cases or boundary values.
+| **C-2** | The model misinterprets the fundamental combinatorial structure of the problem or introduces phantom constraints that incorrectly narrow the solution space. Crucially, this category also encompasses baseless assertions, where the model fabricates premises, intermediate values, or conclusions without any derivation or grounding in the preceding context. This includes instances where specific numbers or rules are "hallucinated" into existence, breaking the logical chain with unfounded claims.
+| **C-3** | The model ignores the constraint or considers cases that violates the constraint, leading to double-counting or treating dependent events as independent.
 
 ### 4. Dependency Identification
 Determine parent steps where the current step:
@@ -643,7 +628,7 @@ Output in json format enclosed by <output> and </output> tags.
 <output>
 {{
     "Correctness": bool (True if the current reasoning step is correct, False if the current reasoning step is incorrect),
-    "Error_Type": str (The type of error the current reasoning step contains, one of the following: (FE, OM, CM, CA, CS, UC, MB, HA, GA)),
+    "Error_Type": str (The type of error the current reasoning step contains, one of the following: (A-1, A-2, G-1, G-2, G-3, C-1, C-2, C-3)),
     "Incorrect_Reason": str (Detailed explanation of why the step is incorrect and what specific errors were made. Empty string if correct),
     "Method_Consistency": bool (True if the current step's approach/method aligns with the reference solution, False if using a different method),
     "Step_Relation": [
@@ -663,7 +648,7 @@ Output in json format enclosed by <output> and </output> tags.
 1. First, read through ALL previous steps to understand the solution context
 2. Compare the current step's methodology with the reference solution to assess consistency
 3. Validate the mathematical correctness of the current step
-4. If errors are found, classify them using the error type codes (FE, OM, CM, CA, CS, UC, MB, HA, GA)
+4. If errors are found, classify them using the error type codes (A-1, A-2, G-1, G-2, G-3, C-1, C-2, C-3)
 5. Identify what specific information the current step uses from previous steps
 6. Be precise about dependencies - only mark actual information flow, not mere sequential ordering
 7. Consider that a step may have multiple parent steps with different relationship types
@@ -920,21 +905,25 @@ def main():
     for record in all_records:
         problem_id = record.get('problem_id')
         predicted = str(record.get('extracted_answer', '')).strip()
+        is_coorect = record.get('is_correct', False)
         ground_truth = ground_truth_answers.get(problem_id, '')
         # print(ground_truth)
         # exit()
 
         if predicted == '0' or predicted == '':
             skipped_zero += 1
-        elif ground_truth and predicted == ground_truth:
+        elif (ground_truth and predicted == ground_truth) or is_coorect:
             skipped_correct += 1
         else:
+            print(ground_truth, predicted)
             filtered_records.append(record)
 
     print(f"Records to process: {len(filtered_records)}")
     print(f"  - Skipped (correct answer): {skipped_correct}")
     print(f"  - Skipped (answer is 0): {skipped_zero}")
     print(f"  - Total skipped: {skipped_correct + skipped_zero}")
+
+    # exit()
 
     if not filtered_records:
         print("\nNo records to process!")
